@@ -64,3 +64,4 @@ doc_pricer/
 - **Add more formats:** Extend the `count_pages()` function in `app.py`
 # doc_pricer
 # doc_pricer
+# doc_pricer
