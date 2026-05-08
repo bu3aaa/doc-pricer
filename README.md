@@ -63,3 +63,4 @@ doc_pricer/
 - **Change max upload size:** Edit `MAX_CONTENT_LENGTH` in `app.py`
 - **Add more formats:** Extend the `count_pages()` function in `app.py`
 # doc_pricer
+# doc_pricer
