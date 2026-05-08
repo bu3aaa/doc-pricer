@@ -62,3 +62,4 @@ doc_pricer/
 - **Change price per page:** Edit `PRICE_PER_PAGE = 0.25` in `app.py`
 - **Change max upload size:** Edit `MAX_CONTENT_LENGTH` in `app.py`
 - **Add more formats:** Extend the `count_pages()` function in `app.py`
+# doc_pricer
