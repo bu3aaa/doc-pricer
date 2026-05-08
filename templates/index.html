@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DocPricer — Instant Page & Price Estimator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink: #0f0e0c;
+      --paper: #f5f0e8;
+      --cream: #ede8dc;
+      --accent: #c8440a;
+      --accent-light: #f0d5c8;
+      --muted: #7a7568;
+      --border: #c8c2b4;
+      --success: #2a6e45;
+      --success-bg: #d6edd9;
+    }
+
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 3rem 1.5rem;
+    }
+
+    /* Grain overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 100;
+      opacity: 0.5;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .logo-mark {
+      display: inline-block;
+      width: 48px;
+      height: 48px;
+      background: var(--accent);
+      border-radius: 4px;
+      position: relative;
+      margin-bottom: 1rem;
+      transform: rotate(-3deg);
+    }
+    .logo-mark::after {
+      content: '⟨/⟩';
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      transform: rotate(3deg);
+    }
+
+    h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+
+    h1 em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .subtitle {
+      margin-top: 0.5rem;
+      color: var(--muted);
+      font-size: 0.95rem;
+      font-weight: 300;
+    }
+
+    .rate-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 1rem;
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 4px 14px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .rate-badge span { color: var(--accent); font-weight: 500; }
+
+    /* Upload zone */
+    .card {
+      width: 100%;
+      max-width: 560px;
+      background: white;
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
+      overflow: hidden;
+    }
+
+    .drop-zone {
+      padding: 3rem 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: background 0.2s;
+      border-bottom: 1.5px dashed var(--border);
+      position: relative;
+    }
+
+    .drop-zone.drag-over {
+      background: var(--accent-light);
+    }
+
+    #file-input { display: none; }
+
+    .upload-icon {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 1rem;
+      background: var(--cream);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      transition: transform 0.2s;
+    }
+
+    .drop-zone:hover .upload-icon {
+      transform: translateY(-3px);
+    }
+
+    .drop-label {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.2rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .drop-hint {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .drop-hint strong { color: var(--accent); font-weight: 500; cursor: pointer; }
+    .drop-hint strong:hover { text-decoration: underline; }
+
+    .formats {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .fmt-chip {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 8px;
+      color: var(--muted);
+    }
+
+    /* Progress */
+    .progress-wrap {
+      padding: 1.5rem 2rem;
+      display: none;
+    }
+
+    .progress-bar-bg {
+      height: 4px;
+      background: var(--cream);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 999px;
+      width: 0%;
+      transition: width 0.4s ease;
+      animation: shimmer 1.2s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { opacity: 1; }
+      50% { opacity: 0.6; }
+      100% { opacity: 1; }
+    }
+
+    .progress-label {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 0.5rem;
+      font-family: 'DM Mono', monospace;
+    }
+
+    /* Result */
+    .result-panel {
+      padding: 2rem;
+      display: none;
+    }
+
+    .result-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 1.5rem;
+    }
+
+    .file-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: var(--cream);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .file-name {
+      font-weight: 500;
+      font-size: 0.95rem;
+      word-break: break-all;
+    }
+
+    .file-meta {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 2px;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-box {
+      background: var(--cream);
+      border-radius: 10px;
+      padding: 1rem 1.2rem;
+    }
+
+    .stat-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2rem;
+      line-height: 1;
+    }
+
+    .stat-box.price .stat-value {
+      color: var(--accent);
+    }
+
+    .stat-unit {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .success-notice {
+      background: var(--success-bg);
+      border-left: 3px solid var(--success);
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 0.82rem;
+      color: var(--success);
+      margin-bottom: 1.2rem;
+    }
+
+    .btn-reset {
+      width: 100%;
+      padding: 12px;
+      background: var(--ink);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .btn-reset:hover { background: #2a2820; }
+    .btn-reset:active { transform: scale(0.98); }
+
+    /* Error */
+    .error-panel {
+      padding: 1.5rem 2rem;
+      display: none;
+      text-align: center;
+    }
+
+    .error-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+    .error-msg { font-size: 0.88rem; color: var(--accent); margin-bottom: 1rem; }
+
+    footer {
+      margin-top: 3rem;
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    footer a { color: var(--muted); }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark"></div>
+  <h1>Doc<em>Pricer</em></h1>
+  <p class="subtitle">Upload a document — get a page count and instant price estimate.</p>
+  <div class="rate-badge">Rate: <span>${{ "%.2f"|format(price_per_page) }} / page</span></div>
+</header>
+
+<div class="card" id="card">
+
+  <!-- Drop Zone -->
+  <div class="drop-zone" id="drop-zone">
+    <input type="file" id="file-input" accept=".pdf,.docx,.txt,.pptx">
+    <div class="upload-icon">📄</div>
+    <p class="drop-label">Drop your document here</p>
+    <p class="drop-hint">or <strong onclick="document.getElementById('file-input').click()">browse to upload</strong></p>
+    <div class="formats">
+      <span class="fmt-chip">PDF</span>
+      <span class="fmt-chip">DOCX</span>
+      <span class="fmt-chip">TXT</span>
+      <span class="fmt-chip">PPTX</span>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-wrap" id="progress-wrap">
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-fill"></div></div>
+    <p class="progress-label" id="progress-label">Analysing document…</p>
+  </div>
+
+  <!-- Result -->
+  <div class="result-panel" id="result-panel">
+    <div class="result-header">
+      <div class="file-icon" id="res-icon">📄</div>
+      <div>
+        <div class="file-name" id="res-filename">—</div>
+        <div class="file-meta" id="res-meta">—</div>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-label">Pages</div>
+        <div class="stat-value" id="res-pages">—</div>
+        <div class="stat-unit">detected pages</div>
+      </div>
+      <div class="stat-box price">
+        <div class="stat-label">Total Price</div>
+        <div class="stat-value" id="res-price">—</div>
+        <div class="stat-unit" id="res-price-detail">—</div>
+      </div>
+    </div>
+
+    <div class="success-notice">✓ Analysis complete. Price calculated at ${{ "%.2f"|format(price_per_page) }}/page.</div>
+    <button class="btn-reset" onclick="reset()">Upload Another Document</button>
+  </div>
+
+  <!-- Error -->
+  <div class="error-panel" id="error-panel">
+    <div class="error-icon">⚠️</div>
+    <p class="error-msg" id="error-msg">Something went wrong.</p>
+    <button class="btn-reset" onclick="reset()">Try Again</button>
+  </div>
+</div>
+
+<footer>Built with Flask &amp; Python · <a href="#">DocPricer</a></footer>
+
+<script>
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input');
+
+  const icons = { PDF: '📑', DOCX: '📝', TXT: '📃', PPTX: '📊' };
+
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+  });
+  dropZone.addEventListener('click', e => {
+    if (e.target.tagName !== 'STRONG') fileInput.click();
+  });
+  fileInput.addEventListener('change', () => { if (fileInput.files[0]) handleFile(fileInput.files[0]); });
+
+  function handleFile(file) {
+    show('progress-wrap');
+    animateProgress();
+
+    const fd = new FormData();
+    fd.append('file', file);
+
+    fetch('/upload', { method: 'POST', body: fd })
+      .then(r => r.json())
+      .then(data => {
+        stopProgress();
+        if (data.error) { showError(data.error); return; }
+        showResult(data);
+      })
+      .catch(() => { stopProgress(); showError('Network error. Please try again.'); });
+  }
+
+  let progressInterval;
+  let progressVal = 0;
+
+  function animateProgress() {
+    progressVal = 0;
+    const fill = document.getElementById('progress-fill');
+    const label = document.getElementById('progress-label');
+    const labels = ['Reading file…', 'Counting pages…', 'Calculating price…'];
+    let li = 0;
+    fill.style.width = '0%';
+    progressInterval = setInterval(() => {
+      progressVal = Math.min(progressVal + Math.random() * 8, 88);
+      fill.style.width = progressVal + '%';
+      if (progressVal > 30 * (li + 1) && li < labels.length - 1) { li++; label.textContent = labels[li]; }
+    }, 200);
+  }
+
+  function stopProgress() {
+    clearInterval(progressInterval);
+    document.getElementById('progress-fill').style.width = '100%';
+  }
+
+  function showResult(data) {
+    hide('progress-wrap');
+    document.getElementById('res-icon').textContent = icons[data.ext] || '📄';
+    document.getElementById('res-filename').textContent = data.filename;
+    document.getElementById('res-meta').textContent = `${data.ext} · ${data.size_kb} KB`;
+    document.getElementById('res-pages').textContent = data.pages;
+    document.getElementById('res-price').textContent = `$${data.price.toFixed(2)}`;
+    document.getElementById('res-price-detail').textContent = `${data.pages} × $${data.price_per_page.toFixed(2)}`;
+    show('result-panel');
+  }
+
+  function showError(msg) {
+    hide('progress-wrap');
+    document.getElementById('error-msg').textContent = msg;
+    show('error-panel');
+  }
+
+  function reset() {
+    hide('result-panel'); hide('error-panel'); hide('progress-wrap');
+    fileInput.value = '';
+  }
+
+  function show(id) { document.getElementById(id).style.display = 'block'; }
+  function hide(id) { document.getElementById(id).style.display = 'none'; }
+</script>
+</body>
+</html>
