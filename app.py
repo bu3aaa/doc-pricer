@@ -5,7 +5,18 @@ import tempfile
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max
 
-# ── Shop data ────────────────────────────────────────────────────────────────
+BINDING_OPTIONS = [
+    {"key": "hardback", "name": "Hardback Binding"},
+    {"key": "spiral",   "name": "Spiral Binding"},
+    {"key": "ring",     "name": "Ring Binding"},
+    {"key": "tape",     "name": "Tape Binding"},
+    {"key": "saddle",   "name": "Saddle Stitching"},
+]
+
+def make_bindings(hard, spiral, ring, tape, saddle):
+    prices = [hard, spiral, ring, tape, saddle]
+    return [{"key": BINDING_OPTIONS[i]["key"], "name": BINDING_OPTIONS[i]["name"], "price": prices[i]} for i in range(5)]
+
 SHOPS = [
     {
         "id": 1,
@@ -15,8 +26,8 @@ SHOPS = [
         "services": ["Printing", "Scanning", "Binding", "Lamination"],
         "bw_price": 0.050,
         "color_price": 0.200,
-        "rating": 4.8,
-        "reviews": 142,
+        "binding_prices": make_bindings(3.500, 1.200, 1.800, 0.500, 0.800),
+        "rating": 4.8, "reviews": 142,
         "open": "Sat–Thu 8am–9pm",
         "image_url": "https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=600&q=80",
         "color": "#1a3a5c"
@@ -29,8 +40,8 @@ SHOPS = [
         "services": ["Printing", "Photocopying", "ID Photos", "Posters"],
         "bw_price": 0.040,
         "color_price": 0.180,
-        "rating": 4.5,
-        "reviews": 98,
+        "binding_prices": make_bindings(3.000, 1.000, 1.500, 0.400, 0.700),
+        "rating": 4.5, "reviews": 98,
         "open": "Daily 7am–10pm",
         "image_url": "https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80",
         "color": "#2d5a27"
@@ -43,8 +54,8 @@ SHOPS = [
         "services": ["Printing", "Binding", "Business Cards", "Banners"],
         "bw_price": 0.060,
         "color_price": 0.220,
-        "rating": 4.7,
-        "reviews": 211,
+        "binding_prices": make_bindings(4.000, 1.500, 2.000, 0.600, 0.900),
+        "rating": 4.7, "reviews": 211,
         "open": "Sat–Thu 9am–8pm",
         "image_url": "https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?w=600&q=80",
         "color": "#5c1a1a"
@@ -57,8 +68,8 @@ SHOPS = [
         "services": ["Printing", "Scanning", "Photo Printing", "Stickers"],
         "bw_price": 0.035,
         "color_price": 0.150,
-        "rating": 4.3,
-        "reviews": 74,
+        "binding_prices": make_bindings(2.800, 0.900, 1.300, 0.350, 0.600),
+        "rating": 4.3, "reviews": 74,
         "open": "Sat–Wed 8am–7pm",
         "image_url": "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=600&q=80",
         "color": "#4a2c6e"
@@ -71,8 +82,8 @@ SHOPS = [
         "services": ["Printing", "Binding", "Lamination", "Rubber Stamps"],
         "bw_price": 0.045,
         "color_price": 0.190,
-        "rating": 4.6,
-        "reviews": 133,
+        "binding_prices": make_bindings(3.200, 1.100, 1.600, 0.450, 0.750),
+        "rating": 4.6, "reviews": 133,
         "open": "Daily 8am–9pm",
         "image_url": "https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=600&q=80",
         "color": "#7a4a00"
@@ -85,8 +96,8 @@ SHOPS = [
         "services": ["Digital Printing", "Scanning", "Blueprints", "Canvas"],
         "bw_price": 0.055,
         "color_price": 0.230,
-        "rating": 4.9,
-        "reviews": 187,
+        "binding_prices": make_bindings(3.800, 1.300, 1.900, 0.550, 0.850),
+        "rating": 4.9, "reviews": 187,
         "open": "Sat–Thu 8:30am–8:30pm",
         "image_url": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&q=80",
         "color": "#0a4a4a"
@@ -96,7 +107,6 @@ SHOPS = [
 def get_shop(shop_id):
     return next((s for s in SHOPS if s["id"] == shop_id), None)
 
-# ── Page counting ─────────────────────────────────────────────────────────────
 def count_pages(filepath, filename):
     ext = filename.rsplit('.', 1)[-1].lower()
     if ext == 'pdf':
@@ -127,7 +137,6 @@ def count_pages(filepath, filename):
     else:
         raise Exception(f"Unsupported file type: .{ext}")
 
-# ── Routes ────────────────────────────────────────────────────────────────────
 @app.route('/')
 def index():
     return render_template('index.html', shops=SHOPS)
@@ -163,16 +172,11 @@ def upload():
 
     try:
         pages = count_pages(tmp_path, filename)
-        if shop:
-            price_per_page = shop['color_price'] if print_type == 'color' else shop['bw_price']
-        else:
-            price_per_page = 0.25
-        price = round(pages * price_per_page, 3)
+        price_per_page = (shop['color_price'] if print_type == 'color' else shop['bw_price']) if shop else 0.25
         size_kb = round(os.path.getsize(tmp_path) / 1024, 1)
         return jsonify({
             'filename': filename,
             'pages': pages,
-            'price': price,
             'price_per_page': price_per_page,
             'print_type': print_type,
             'size_kb': size_kb,
