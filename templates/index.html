@@ -344,7 +344,7 @@
   <div class="logo-mark"></div>
   <h1>Doc<em>Pricer</em></h1>
   <p class="subtitle">Upload a document — get a page count and instant price estimate.</p>
-  <div class="rate-badge">Rate: <span>${{ "%.2f"|format(price_per_page) }} / page</span></div>
+  <div class="rate-badge">Rate: <span>BD{{ "%.01f"|format(price_per_page) }} / page</span></div>
 </header>
 
 <div class="card" id="card">
@@ -392,7 +392,7 @@
       </div>
     </div>
 
-    <div class="success-notice">✓ Analysis complete. Price calculated at ${{ "%.2f"|format(price_per_page) }}/page.</div>
+    <div class="success-notice">✓ Analysis complete. Price calculated at BD{{ "%.01f"|format(price_per_page) }}/page.</div>
     <button class="btn-reset" onclick="reset()">Upload Another Document</button>
   </div>
 
