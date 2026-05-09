@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{{ shop.name }} — PrintSpot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0b0c0f;
+      --surface: #13151a;
+      --surface2: #1c1f27;
+      --border: #2a2d38;
+      --text: #e8e6e0;
+      --muted: #6b6e7a;
+      --accent: #f5a623;
+      --white: #ffffff;
+      --shop-color: {{ shop.color }};
+    }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'DM Sans', sans-serif; min-height: 100vh;
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; gap: 1rem;
+      padding: 1.1rem 2rem;
+      background: rgba(11,12,15,0.9); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .back-btn {
+      display: flex; align-items: center; gap: 6px;
+      color: var(--muted); text-decoration: none; font-size: 0.85rem;
+      transition: color 0.15s;
+    }
+    .back-btn:hover { color: var(--text); }
+    .nav-crumb { color: var(--muted); font-size: 0.85rem; }
+    .nav-crumb span { color: var(--text); font-weight: 500; }
+
+    /* ── Hero banner ── */
+    .shop-banner {
+      position: relative; height: 260px; overflow: hidden;
+    }
+    .shop-banner img {
+      width: 100%; height: 100%; object-fit: cover;
+      filter: brightness(0.4);
+    }
+    .shop-banner-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, var(--shop-color) 0%, transparent 60%);
+      opacity: 0.6;
+    }
+    .shop-banner-content {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 2rem 2.5rem;
+    }
+    .shop-banner-name {
+      font-family: 'Syne', sans-serif; font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: 800; color: var(--white); letter-spacing: -0.02em;
+    }
+    .shop-banner-meta {
+      display: flex; align-items: center; gap: 1.2rem;
+      margin-top: 0.5rem; flex-wrap: wrap;
+    }
+    .meta-item {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 0.8rem; color: rgba(255,255,255,0.7);
+    }
+    .rating-badge {
+      background: var(--accent); color: #0b0c0f;
+      border-radius: 6px; padding: 2px 10px;
+      font-family: 'DM Mono', monospace; font-size: 0.8rem; font-weight: 500;
+    }
+
+    /* ── Layout ── */
+    .layout {
+      max-width: 1100px; margin: 0 auto;
+      padding: 2rem 2rem 4rem;
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 2rem;
+      align-items: start;
+    }
+    @media (max-width: 720px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+
+    /* ── Info sidebar ── */
+    .info-card {
+      background: var(--surface); border: 1.5px solid var(--border);
+      border-radius: 14px; padding: 1.4rem; position: sticky; top: 80px;
+    }
+    .info-section-title {
+      font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--muted); margin-bottom: 0.8rem;
+    }
+    .info-row {
+      display: flex; align-items: flex-start; gap: 10px;
+      margin-bottom: 1rem; font-size: 0.85rem; color: var(--text);
+    }
+    .info-row svg { color: var(--muted); flex-shrink: 0; margin-top: 2px; }
+    .info-divider { border: none; border-top: 1px solid var(--border); margin: 1.2rem 0; }
+
+    .service-list {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1.2rem;
+    }
+    .svc-tag {
+      font-family: 'DM Mono', monospace; font-size: 0.68rem;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 5px; padding: 3px 9px; color: var(--muted);
+    }
+
+    .price-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    }
+    .price-tile {
+      border-radius: 10px; padding: 12px;
+      border: 1.5px solid var(--border);
+    }
+    .price-tile.bw { background: var(--surface2); }
+    .price-tile.color { background: rgba(245,166,35,0.08); border-color: rgba(245,166,35,0.3); }
+    .tile-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 4px; }
+    .tile-val {
+      font-family: 'DM Mono', monospace; font-size: 1.1rem; font-weight: 500;
+    }
+    .price-tile.bw .tile-val { color: var(--text); }
+    .price-tile.color .tile-val { color: var(--accent); }
+    .tile-sub { font-size: 0.65rem; color: var(--muted); margin-top: 2px; }
+
+    /* ── Upload card ── */
+    .upload-card {
+      background: var(--surface); border: 1.5px solid var(--border);
+      border-radius: 14px; overflow: hidden;
+    }
+    .upload-card-header {
+      padding: 1.4rem 1.6rem;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .upload-card-title {
+      font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.05rem;
+    }
+
+    /* Print type toggle */
+    .type-toggle {
+      display: flex; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+    }
+    .type-btn {
+      padding: 6px 14px; border: none; background: none; cursor: pointer;
+      font-family: 'DM Sans', sans-serif; font-size: 0.8rem;
+      color: var(--muted); transition: all 0.15s;
+    }
+    .type-btn.active {
+      background: var(--accent); color: #0b0c0f; font-weight: 600;
+    }
+
+    /* Drop zone */
+    .drop-zone {
+      margin: 1.4rem 1.6rem;
+      border: 2px dashed var(--border);
+      border-radius: 12px; padding: 3rem 2rem;
+      text-align: center; cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: var(--accent);
+      background: rgba(245,166,35,0.04);
+    }
+    #file-input { display: none; }
+    .drop-icon {
+      width: 52px; height: 52px; border-radius: 12px;
+      background: var(--surface2); display: flex; align-items: center;
+      justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem;
+      transition: transform 0.2s;
+    }
+    .drop-zone:hover .drop-icon { transform: translateY(-3px); }
+    .drop-title {
+      font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem;
+      color: var(--white); margin-bottom: 0.4rem;
+    }
+    .drop-hint { font-size: 0.8rem; color: var(--muted); }
+    .drop-hint strong { color: var(--accent); cursor: pointer; }
+    .fmt-row { display: flex; gap: 5px; justify-content: center; margin-top: 1rem; flex-wrap: wrap; }
+    .fmt-chip {
+      font-family: 'DM Mono', monospace; font-size: 0.65rem;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 3px; padding: 2px 7px; color: var(--muted);
+    }
+
+    /* Progress */
+    .progress-wrap { padding: 1rem 1.6rem; display: none; }
+    .progress-bg { height: 4px; background: var(--surface2); border-radius: 999px; overflow: hidden; }
+    .progress-fill {
+      height: 100%; background: var(--accent); border-radius: 999px;
+      width: 0%; transition: width 0.4s;
+    }
+    .progress-lbl { font-size: 0.78rem; color: var(--muted); margin-top: 6px; font-family: 'DM Mono', monospace; }
+
+    /* Result */
+    .result-panel { padding: 1.4rem 1.6rem; display: none; }
+    .result-file {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 14px; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 8px; margin-bottom: 1.2rem;
+    }
+    .result-file-icon { font-size: 1.2rem; }
+    .result-file-name { font-size: 0.85rem; font-weight: 500; color: var(--white); }
+    .result-file-meta { font-size: 0.72rem; color: var(--muted); font-family: 'DM Mono', monospace; }
+
+    .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.2rem; }
+    .result-box { background: var(--surface2); border-radius: 10px; padding: 1rem 1.1rem; }
+    .result-box.highlight { background: rgba(245,166,35,0.1); border: 1.5px solid rgba(245,166,35,0.35); }
+    .rbox-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 4px; }
+    .rbox-val {
+      font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; color: var(--white); line-height: 1;
+    }
+    .result-box.highlight .rbox-val { color: var(--accent); }
+    .rbox-sub { font-size: 0.7rem; color: var(--muted); margin-top: 3px; }
+
+    .success-bar {
+      background: rgba(90,223,138,0.1); border: 1px solid rgba(90,223,138,0.25);
+      border-radius: 8px; padding: 10px 14px; font-size: 0.8rem; color: #5adf8a;
+      margin-bottom: 1rem;
+    }
+
+    .btn-reset {
+      width: 100%; padding: 12px; background: var(--surface2);
+      border: 1.5px solid var(--border); border-radius: 8px;
+      color: var(--text); font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem; cursor: pointer; transition: border-color 0.15s;
+    }
+    .btn-reset:hover { border-color: var(--accent); }
+
+    /* Error */
+    .error-panel { padding: 1.2rem 1.6rem; display: none; text-align: center; }
+    .error-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+    .error-msg { font-size: 0.85rem; color: #e85d26; margin-bottom: 1rem; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="back-btn" href="/">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+    All Shops
+  </a>
+  <div class="nav-crumb">/ <span>{{ shop.name }}</span></div>
+</nav>
+
+<!-- Banner -->
+<div class="shop-banner">
+  <img src="{{ shop.image_url }}" alt="{{ shop.name }}">
+  <div class="shop-banner-overlay"></div>
+  <div class="shop-banner-content">
+    <div class="shop-banner-name">{{ shop.name }}</div>
+    <div class="shop-banner-meta">
+      <span class="rating-badge">★ {{ shop.rating }}</span>
+      <span class="meta-item">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        {{ shop.location }}
+      </span>
+      <span class="meta-item">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.91a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.73 16.92z"/></svg>
+        {{ shop.contact }}
+      </span>
+      <span class="meta-item" style="color:#5adf8a">● {{ shop.open }}</span>
+    </div>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- Info Sidebar -->
+  <aside>
+    <div class="info-card">
+      <div class="info-section-title">Shop Details</div>
+      <div class="info-row">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        {{ shop.location }}
+      </div>
+      <div class="info-row">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.91a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.73 16.92z"/></svg>
+        {{ shop.contact }}
+      </div>
+      <div class="info-row" style="color:var(--muted)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        {{ shop.open }}
+      </div>
+
+      <hr class="info-divider">
+      <div class="info-section-title">Services</div>
+      <div class="service-list">
+        {% for svc in shop.services %}
+        <span class="svc-tag">{{ svc }}</span>
+        {% endfor %}
+      </div>
+
+      <hr class="info-divider">
+      <div class="info-section-title">Pricing</div>
+      <div class="price-grid">
+        <div class="price-tile bw">
+          <div class="tile-label">B&W</div>
+          <div class="tile-val">{{ "%.3f"|format(shop.bw_price) }}</div>
+          <div class="tile-sub">BD / page</div>
+        </div>
+        <div class="price-tile color">
+          <div class="tile-label">Colour</div>
+          <div class="tile-val">{{ "%.3f"|format(shop.color_price) }}</div>
+          <div class="tile-sub">BD / page</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Upload Panel -->
+  <div class="upload-card">
+    <div class="upload-card-header">
+      <div class="upload-card-title">Get Instant Price Quote</div>
+      <div class="type-toggle">
+        <button class="type-btn active" id="btn-bw" onclick="setType('bw')">B&W</button>
+        <button class="type-btn" id="btn-color" onclick="setType('color')">Colour</button>
+      </div>
+    </div>
+
+    <!-- Drop zone -->
+    <div class="drop-zone" id="drop-zone">
+      <input type="file" id="file-input" accept=".pdf,.docx,.txt,.pptx">
+      <div class="drop-icon">📄</div>
+      <div class="drop-title">Drop your document here</div>
+      <p class="drop-hint">or <strong onclick="document.getElementById('file-input').click()">browse to upload</strong></p>
+      <div class="fmt-row">
+        <span class="fmt-chip">PDF</span>
+        <span class="fmt-chip">DOCX</span>
+        <span class="fmt-chip">TXT</span>
+        <span class="fmt-chip">PPTX</span>
+      </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-wrap" id="progress-wrap">
+      <div class="progress-bg"><div class="progress-fill" id="progress-fill"></div></div>
+      <div class="progress-lbl" id="progress-lbl">Analysing…</div>
+    </div>
+
+    <!-- Result -->
+    <div class="result-panel" id="result-panel">
+      <div class="result-file">
+        <div class="result-file-icon" id="res-icon">📄</div>
+        <div>
+          <div class="result-file-name" id="res-name">—</div>
+          <div class="result-file-meta" id="res-meta">—</div>
+        </div>
+      </div>
+      <div class="result-grid">
+        <div class="result-box">
+          <div class="rbox-label">Pages</div>
+          <div class="rbox-val" id="res-pages">—</div>
+          <div class="rbox-sub">detected pages</div>
+        </div>
+        <div class="result-box highlight">
+          <div class="rbox-label">Total Price</div>
+          <div class="rbox-val" id="res-price">—</div>
+          <div class="rbox-sub" id="res-breakdown">—</div>
+        </div>
+      </div>
+      <div class="success-bar" id="res-notice">✓ Quote ready.</div>
+      <button class="btn-reset" onclick="reset()">Upload Another Document</button>
+    </div>
+
+    <!-- Error -->
+    <div class="error-panel" id="error-panel">
+      <div class="error-icon">⚠️</div>
+      <div class="error-msg" id="error-msg">Something went wrong.</div>
+      <button class="btn-reset" onclick="reset()">Try Again</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const SHOP_ID = {{ shop.id }};
+  const BW_PRICE = {{ shop.bw_price }};
+  const COLOR_PRICE = {{ shop.color_price }};
+  const ICONS = { PDF:'📑', DOCX:'📝', TXT:'📃', PPTX:'📊' };
+  let printType = 'bw';
+
+  function setType(t) {
+    printType = t;
+    document.getElementById('btn-bw').classList.toggle('active', t === 'bw');
+    document.getElementById('btn-color').classList.toggle('active', t === 'color');
+  }
+
+  const dz = document.getElementById('drop-zone');
+  const fi = document.getElementById('file-input');
+
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+  dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('drag-over'); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+  dz.addEventListener('click', e => { if (e.target.tagName !== 'STRONG') fi.click(); });
+  fi.addEventListener('change', () => { if (fi.files[0]) handleFile(fi.files[0]); });
+
+  function handleFile(file) {
+    show('progress-wrap'); hide('drop-zone');
+    animateProgress();
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('shop_id', SHOP_ID);
+    fd.append('print_type', printType);
+    fetch('/upload', { method: 'POST', body: fd })
+      .then(r => r.json())
+      .then(d => { stopProgress(); d.error ? showError(d.error) : showResult(d); })
+      .catch(() => { stopProgress(); showError('Network error. Please try again.'); });
+  }
+
+  let pInterval, pVal = 0;
+  function animateProgress() {
+    pVal = 0;
+    const fill = document.getElementById('progress-fill');
+    const lbl = document.getElementById('progress-lbl');
+    const labels = ['Reading file…', 'Counting pages…', 'Calculating price…'];
+    let li = 0;
+    fill.style.width = '0%';
+    pInterval = setInterval(() => {
+      pVal = Math.min(pVal + Math.random() * 9, 88);
+      fill.style.width = pVal + '%';
+      if (pVal > 30 * (li + 1) && li < labels.length - 1) { li++; lbl.textContent = labels[li]; }
+    }, 200);
+  }
+  function stopProgress() { clearInterval(pInterval); document.getElementById('progress-fill').style.width = '100%'; }
+
+  function showResult(d) {
+    hide('progress-wrap');
+    document.getElementById('res-icon').textContent = ICONS[d.ext] || '📄';
+    document.getElementById('res-name').textContent = d.filename;
+    document.getElementById('res-meta').textContent = `${d.ext} · ${d.size_kb} KB · ${d.print_type === 'color' ? 'Colour' : 'B&W'} print`;
+    document.getElementById('res-pages').textContent = d.pages;
+    document.getElementById('res-price').textContent = d.price.toFixed(3) + ' BD';
+    document.getElementById('res-breakdown').textContent = `${d.pages} pages × ${d.price_per_page.toFixed(3)} BD`;
+    const notice = document.getElementById('res-notice');
+    notice.textContent = `✓ ${d.print_type === 'color' ? 'Colour' : 'B&W'} quote for {{ shop.name }} — ready to print!`;
+    show('result-panel');
+  }
+
+  function showError(msg) { hide('progress-wrap'); document.getElementById('error-msg').textContent = msg; show('error-panel'); }
+
+  function reset() {
+    hide('result-panel'); hide('error-panel'); hide('progress-wrap');
+    show('drop-zone'); fi.value = '';
+  }
+
+  function show(id) { document.getElementById(id).style.display = 'block'; }
+  function hide(id) { document.getElementById(id).style.display = 'none'; }
+</script>
+</body>
+</html>

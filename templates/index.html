@@ -1,492 +1,332 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>DocPricer — Instant Page & Price Estimator</title>
+  <title>PrintSpot Bahrain — Find Your Print Shop</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --ink: #0f0e0c;
-      --paper: #f5f0e8;
-      --cream: #ede8dc;
-      --accent: #c8440a;
-      --accent-light: #f0d5c8;
-      --muted: #7a7568;
-      --border: #c8c2b4;
-      --success: #2a6e45;
-      --success-bg: #d6edd9;
+      --bg: #0b0c0f;
+      --surface: #13151a;
+      --surface2: #1c1f27;
+      --border: #2a2d38;
+      --text: #e8e6e0;
+      --muted: #6b6e7a;
+      --accent: #f5a623;
+      --accent2: #e85d26;
+      --white: #ffffff;
     }
+
+    html { scroll-behavior: smooth; }
 
     body {
-      background: var(--paper);
-      color: var(--ink);
+      background: var(--bg);
+      color: var(--text);
       font-family: 'DM Sans', sans-serif;
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 3rem 1.5rem;
+      overflow-x: hidden;
     }
 
-    /* Grain overlay */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-      pointer-events: none;
-      z-index: 100;
-      opacity: 0.5;
+    /* ── Nav ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem 2.5rem;
+      background: rgba(11,12,15,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
     }
-
-    header {
-      text-align: center;
-      margin-bottom: 3rem;
+    .nav-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800; font-size: 1.25rem; letter-spacing: -0.02em;
+      color: var(--white);
     }
-
-    .logo-mark {
-      display: inline-block;
-      width: 48px;
-      height: 48px;
-      background: var(--accent);
-      border-radius: 4px;
-      position: relative;
-      margin-bottom: 1rem;
-      transform: rotate(-3deg);
-    }
-    .logo-mark::after {
-      content: '⟨/⟩';
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
+    .nav-logo span { color: var(--accent); }
+    .nav-badge {
       font-family: 'DM Mono', monospace;
-      font-size: 12px;
-      transform: rotate(3deg);
+      font-size: 0.72rem; color: var(--muted);
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 999px; padding: 4px 12px;
     }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 9rem 2.5rem 4rem;
+      max-width: 900px; margin: 0 auto; text-align: center;
+    }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: 'DM Mono', monospace; font-size: 0.72rem;
+      color: var(--accent); text-transform: uppercase; letter-spacing: 0.12em;
+      background: rgba(245,166,35,0.1); border: 1px solid rgba(245,166,35,0.25);
+      border-radius: 999px; padding: 5px 16px; margin-bottom: 1.5rem;
+    }
+    .hero-eyebrow::before { content: '●'; font-size: 0.5rem; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
     h1 {
-      font-family: 'DM Serif Display', serif;
-      font-size: clamp(2rem, 5vw, 3.5rem);
-      letter-spacing: -0.02em;
-      line-height: 1.1;
-    }
-
-    h1 em {
-      font-style: italic;
-      color: var(--accent);
-    }
-
-    .subtitle {
-      margin-top: 0.5rem;
-      color: var(--muted);
-      font-size: 0.95rem;
-      font-weight: 300;
-    }
-
-    .rate-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      margin-top: 1rem;
-      background: var(--cream);
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      padding: 4px 14px;
-      font-family: 'DM Mono', monospace;
-      font-size: 0.8rem;
-      color: var(--muted);
-    }
-    .rate-badge span { color: var(--accent); font-weight: 500; }
-
-    /* Upload zone */
-    .card {
-      width: 100%;
-      max-width: 560px;
-      background: white;
-      border: 1.5px solid var(--border);
-      border-radius: 16px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
-      overflow: hidden;
-    }
-
-    .drop-zone {
-      padding: 3rem 2rem;
-      text-align: center;
-      cursor: pointer;
-      transition: background 0.2s;
-      border-bottom: 1.5px dashed var(--border);
-      position: relative;
-    }
-
-    .drop-zone.drag-over {
-      background: var(--accent-light);
-    }
-
-    #file-input { display: none; }
-
-    .upload-icon {
-      width: 56px;
-      height: 56px;
-      margin: 0 auto 1rem;
-      background: var(--cream);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.6rem;
-      transition: transform 0.2s;
-    }
-
-    .drop-zone:hover .upload-icon {
-      transform: translateY(-3px);
-    }
-
-    .drop-label {
-      font-family: 'DM Serif Display', serif;
-      font-size: 1.2rem;
-      margin-bottom: 0.4rem;
-    }
-
-    .drop-hint {
-      font-size: 0.82rem;
-      color: var(--muted);
-    }
-
-    .drop-hint strong { color: var(--accent); font-weight: 500; cursor: pointer; }
-    .drop-hint strong:hover { text-decoration: underline; }
-
-    .formats {
-      display: flex;
-      gap: 6px;
-      justify-content: center;
-      margin-top: 1rem;
-      flex-wrap: wrap;
-    }
-
-    .fmt-chip {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.7rem;
-      background: var(--cream);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 2px 8px;
-      color: var(--muted);
-    }
-
-    /* Progress */
-    .progress-wrap {
-      padding: 1.5rem 2rem;
-      display: none;
-    }
-
-    .progress-bar-bg {
-      height: 4px;
-      background: var(--cream);
-      border-radius: 999px;
-      overflow: hidden;
-    }
-
-    .progress-bar-fill {
-      height: 100%;
-      background: var(--accent);
-      border-radius: 999px;
-      width: 0%;
-      transition: width 0.4s ease;
-      animation: shimmer 1.2s infinite;
-    }
-
-    @keyframes shimmer {
-      0% { opacity: 1; }
-      50% { opacity: 0.6; }
-      100% { opacity: 1; }
-    }
-
-    .progress-label {
-      font-size: 0.82rem;
-      color: var(--muted);
-      margin-top: 0.5rem;
-      font-family: 'DM Mono', monospace;
-    }
-
-    /* Result */
-    .result-panel {
-      padding: 2rem;
-      display: none;
-    }
-
-    .result-header {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      margin-bottom: 1.5rem;
-    }
-
-    .file-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 8px;
-      background: var(--cream);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.2rem;
-      flex-shrink: 0;
-    }
-
-    .file-name {
-      font-weight: 500;
-      font-size: 0.95rem;
-      word-break: break-all;
-    }
-
-    .file-meta {
-      font-size: 0.78rem;
-      color: var(--muted);
-      margin-top: 2px;
-      font-family: 'DM Mono', monospace;
-    }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 1.5rem;
-    }
-
-    .stat-box {
-      background: var(--cream);
-      border-radius: 10px;
-      padding: 1rem 1.2rem;
-    }
-
-    .stat-label {
-      font-size: 0.72rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--muted);
-      margin-bottom: 4px;
-    }
-
-    .stat-value {
-      font-family: 'DM Serif Display', serif;
-      font-size: 2rem;
-      line-height: 1;
-    }
-
-    .stat-box.price .stat-value {
-      color: var(--accent);
-    }
-
-    .stat-unit {
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.75rem;
-      color: var(--muted);
-      margin-top: 2px;
-    }
-
-    .success-notice {
-      background: var(--success-bg);
-      border-left: 3px solid var(--success);
-      border-radius: 6px;
-      padding: 10px 14px;
-      font-size: 0.82rem;
-      color: var(--success);
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.8rem, 7vw, 5.5rem);
+      font-weight: 800; line-height: 1.0; letter-spacing: -0.03em;
       margin-bottom: 1.2rem;
     }
+    h1 em { font-style: italic; color: var(--accent); }
 
-    .btn-reset {
-      width: 100%;
-      padding: 12px;
-      background: var(--ink);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.9rem;
-      font-weight: 500;
+    .hero-sub {
+      font-size: 1.05rem; color: var(--muted); max-width: 480px;
+      margin: 0 auto 2.5rem; line-height: 1.7; font-weight: 300;
+    }
+
+    /* Search bar */
+    .search-wrap {
+      display: flex; gap: 0; max-width: 480px; margin: 0 auto;
+      background: var(--surface2); border: 1.5px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .search-wrap:focus-within { border-color: var(--accent); }
+    .search-wrap input {
+      flex: 1; background: none; border: none; outline: none;
+      padding: 14px 18px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+    }
+    .search-wrap input::placeholder { color: var(--muted); }
+    .search-btn {
+      background: var(--accent); border: none; padding: 0 20px;
+      color: #0b0c0f; font-weight: 600; cursor: pointer;
+      font-family: 'DM Sans', sans-serif; font-size: 0.88rem;
+      transition: background 0.15s;
+    }
+    .search-btn:hover { background: #f7b84a; }
+
+    /* Stats strip */
+    .stats-strip {
+      display: flex; justify-content: center; gap: 2.5rem;
+      margin-top: 3rem; flex-wrap: wrap;
+    }
+    .stat { text-align: center; }
+    .stat-n {
+      font-family: 'Syne', sans-serif; font-size: 1.8rem;
+      font-weight: 800; color: var(--white);
+    }
+    .stat-l { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+
+    /* ── Section ── */
+    .section {
+      max-width: 1200px; margin: 0 auto; padding: 2rem 2rem 5rem;
+    }
+    .section-header {
+      display: flex; align-items: baseline; justify-content: space-between;
+      margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;
+    }
+    .section-title {
+      font-family: 'Syne', sans-serif; font-size: 1.3rem;
+      font-weight: 700; letter-spacing: -0.01em;
+    }
+    .section-count {
+      font-family: 'DM Mono', monospace; font-size: 0.75rem; color: var(--muted);
+    }
+
+    /* ── Shop Grid ── */
+    .shop-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .shop-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
       cursor: pointer;
-      transition: background 0.15s, transform 0.1s;
+      text-decoration: none; color: inherit;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+      display: block;
+      animation: fadeUp 0.5s ease both;
+    }
+    .shop-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent);
+      box-shadow: 0 12px 40px rgba(245,166,35,0.12);
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .shop-card:nth-child(1) { animation-delay: 0.05s; }
+    .shop-card:nth-child(2) { animation-delay: 0.1s; }
+    .shop-card:nth-child(3) { animation-delay: 0.15s; }
+    .shop-card:nth-child(4) { animation-delay: 0.2s; }
+    .shop-card:nth-child(5) { animation-delay: 0.25s; }
+    .shop-card:nth-child(6) { animation-delay: 0.3s; }
+
+    .card-img {
+      width: 100%; height: 180px; object-fit: cover;
+      display: block; position: relative;
+    }
+    .card-img-wrap { position: relative; }
+    .card-img-wrap::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(to bottom, transparent 40%, rgba(11,12,15,0.7));
+    }
+    .card-open-badge {
+      position: absolute; top: 12px; right: 12px; z-index: 2;
+      background: rgba(11,12,15,0.75); backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,0.12); border-radius: 999px;
+      padding: 3px 10px; font-size: 0.68rem;
+      font-family: 'DM Mono', monospace; color: #5adf8a;
     }
 
-    .btn-reset:hover { background: #2a2820; }
-    .btn-reset:active { transform: scale(0.98); }
+    .card-body { padding: 1.25rem 1.4rem 1.4rem; }
 
-    /* Error */
-    .error-panel {
-      padding: 1.5rem 2rem;
-      display: none;
-      text-align: center;
+    .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.6rem; }
+    .card-name {
+      font-family: 'Syne', sans-serif; font-size: 1.05rem;
+      font-weight: 700; line-height: 1.2; color: var(--white);
+    }
+    .card-rating {
+      display: flex; align-items: center; gap: 4px;
+      font-size: 0.78rem; color: var(--accent);
+      font-family: 'DM Mono', monospace; white-space: nowrap;
     }
 
-    .error-icon { font-size: 2rem; margin-bottom: 0.5rem; }
-    .error-msg { font-size: 0.88rem; color: var(--accent); margin-bottom: 1rem; }
+    .card-location {
+      font-size: 0.8rem; color: var(--muted); margin-bottom: 0.9rem;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .card-location svg { flex-shrink: 0; }
+
+    .card-services {
+      display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 1rem;
+    }
+    .svc-chip {
+      font-size: 0.68rem; font-family: 'DM Mono', monospace;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 4px; padding: 2px 8px; color: var(--muted);
+    }
+
+    .card-prices {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 8px; margin-bottom: 1rem;
+    }
+    .price-box {
+      background: var(--surface2); border-radius: 8px;
+      padding: 8px 10px;
+    }
+    .price-box-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 2px; }
+    .price-box-val {
+      font-family: 'DM Mono', monospace; font-size: 0.95rem; font-weight: 500;
+    }
+    .price-box.bw .price-box-val { color: var(--text); }
+    .price-box.color .price-box-val { color: var(--accent); }
+
+    .card-cta {
+      width: 100%; padding: 10px;
+      background: var(--accent); border: none; border-radius: 8px;
+      color: #0b0c0f; font-weight: 600; font-size: 0.85rem;
+      font-family: 'DM Sans', sans-serif; cursor: pointer;
+      transition: background 0.15s;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .card-cta:hover { background: #f7b84a; }
+
+    /* hidden cards */
+    .shop-card.hidden { display: none; }
 
     footer {
-      margin-top: 3rem;
-      text-align: center;
-      font-size: 0.78rem;
-      color: var(--muted);
+      text-align: center; padding: 2rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.78rem; color: var(--muted);
     }
-
-    footer a { color: var(--muted); }
   </style>
 </head>
 <body>
 
-<header>
-  <div class="logo-mark"></div>
-  <h1>Doc<em>Pricer</em></h1>
-  <p class="subtitle">Upload a document — get a page count and instant price estimate.</p>
-  <div class="rate-badge">Rate: <span>BD{{ "%.01f"|format(price_per_page) }} / page</span></div>
-</header>
+<nav>
+  <div class="nav-logo">Print<span>Spot</span></div>
+  <div class="nav-badge">🇧🇭 Bahrain</div>
+</nav>
 
-<div class="card" id="card">
+<section class="hero">
+  <div class="hero-eyebrow">Find · Compare · Print</div>
+  <h1>Your nearest<br><em>print shop,</em><br>instant price.</h1>
+  <p class="hero-sub">Pick a shop, upload your document, and get an exact price quote in seconds — black & white or colour.</p>
+  <div class="search-wrap">
+    <input type="text" id="search-input" placeholder="Search by shop name or location…" oninput="filterShops(this.value)">
+    <button class="search-btn">Search</button>
+  </div>
+  <div class="stats-strip">
+    <div class="stat"><div class="stat-n">{{ shops|length }}</div><div class="stat-l">Print Shops</div></div>
+    <div class="stat"><div class="stat-n">BHD</div><div class="stat-l">Local Pricing</div></div>
+    <div class="stat"><div class="stat-n">4</div><div class="stat-l">File Formats</div></div>
+  </div>
+</section>
 
-  <!-- Drop Zone -->
-  <div class="drop-zone" id="drop-zone">
-    <input type="file" id="file-input" accept=".pdf,.docx,.txt,.pptx">
-    <div class="upload-icon">📄</div>
-    <p class="drop-label">Drop your document here</p>
-    <p class="drop-hint">or <strong onclick="document.getElementById('file-input').click()">browse to upload</strong></p>
-    <div class="formats">
-      <span class="fmt-chip">PDF</span>
-      <span class="fmt-chip">DOCX</span>
-      <span class="fmt-chip">TXT</span>
-      <span class="fmt-chip">PPTX</span>
-    </div>
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Available Shops</div>
+    <div class="section-count" id="shop-count">{{ shops|length }} shops</div>
   </div>
 
-  <!-- Progress -->
-  <div class="progress-wrap" id="progress-wrap">
-    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-fill"></div></div>
-    <p class="progress-label" id="progress-label">Analysing document…</p>
-  </div>
-
-  <!-- Result -->
-  <div class="result-panel" id="result-panel">
-    <div class="result-header">
-      <div class="file-icon" id="res-icon">📄</div>
-      <div>
-        <div class="file-name" id="res-filename">—</div>
-        <div class="file-meta" id="res-meta">—</div>
+  <div class="shop-grid" id="shop-grid">
+    {% for shop in shops %}
+    <a class="shop-card" href="/shop/{{ shop.id }}" data-name="{{ shop.name|lower }}" data-location="{{ shop.location|lower }}">
+      <div class="card-img-wrap">
+        <img class="card-img" src="{{ shop.image_url }}" alt="{{ shop.name }}" loading="lazy">
+        <div class="card-open-badge">● Open</div>
       </div>
-    </div>
-
-    <div class="stats-grid">
-      <div class="stat-box">
-        <div class="stat-label">Pages</div>
-        <div class="stat-value" id="res-pages">—</div>
-        <div class="stat-unit">detected pages</div>
+      <div class="card-body">
+        <div class="card-top">
+          <div class="card-name">{{ shop.name }}</div>
+          <div class="card-rating">★ {{ shop.rating }} <span style="color:var(--muted)">({{ shop.reviews }})</span></div>
+        </div>
+        <div class="card-location">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          {{ shop.location }}
+        </div>
+        <div class="card-services">
+          {% for svc in shop.services %}
+          <span class="svc-chip">{{ svc }}</span>
+          {% endfor %}
+        </div>
+        <div class="card-prices">
+          <div class="price-box bw">
+            <div class="price-box-label">B&W / page</div>
+            <div class="price-box-val">{{ "%.3f"|format(shop.bw_price) }} BD</div>
+          </div>
+          <div class="price-box color">
+            <div class="price-box-label">Colour / page</div>
+            <div class="price-box-val">{{ "%.3f"|format(shop.color_price) }} BD</div>
+          </div>
+        </div>
+        <button class="card-cta" onclick="event.preventDefault(); window.location='/shop/{{ shop.id }}'">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Upload & Get Price
+        </button>
       </div>
-      <div class="stat-box price">
-        <div class="stat-label">Total Price</div>
-        <div class="stat-value" id="res-price">—</div>
-        <div class="stat-unit" id="res-price-detail">—</div>
-      </div>
-    </div>
-
-    <div class="success-notice">✓ Analysis complete. Price calculated at BD{{ "%.01f"|format(price_per_page) }}/page.</div>
-    <button class="btn-reset" onclick="reset()">Upload Another Document</button>
-  </div>
-
-  <!-- Error -->
-  <div class="error-panel" id="error-panel">
-    <div class="error-icon">⚠️</div>
-    <p class="error-msg" id="error-msg">Something went wrong.</p>
-    <button class="btn-reset" onclick="reset()">Try Again</button>
+    </a>
+    {% endfor %}
   </div>
 </div>
 
-<footer>Built with Flask &amp; Python · <a href="#">DocPricer</a></footer>
+<footer>PrintSpot Bahrain · {{ shops|length }} shops listed · Prices in Bahraini Dinar (BD)</footer>
 
 <script>
-  const dropZone = document.getElementById('drop-zone');
-  const fileInput = document.getElementById('file-input');
-
-  const icons = { PDF: '📑', DOCX: '📝', TXT: '📃', PPTX: '📊' };
-
-  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-  dropZone.addEventListener('drop', e => {
-    e.preventDefault();
-    dropZone.classList.remove('drag-over');
-    if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
-  });
-  dropZone.addEventListener('click', e => {
-    if (e.target.tagName !== 'STRONG') fileInput.click();
-  });
-  fileInput.addEventListener('change', () => { if (fileInput.files[0]) handleFile(fileInput.files[0]); });
-
-  function handleFile(file) {
-    show('progress-wrap');
-    animateProgress();
-
-    const fd = new FormData();
-    fd.append('file', file);
-
-    fetch('/upload', { method: 'POST', body: fd })
-      .then(r => r.json())
-      .then(data => {
-        stopProgress();
-        if (data.error) { showError(data.error); return; }
-        showResult(data);
-      })
-      .catch(() => { stopProgress(); showError('Network error. Please try again.'); });
+  function filterShops(q) {
+    const cards = document.querySelectorAll('.shop-card');
+    q = q.toLowerCase().trim();
+    let visible = 0;
+    cards.forEach(c => {
+      const match = !q || c.dataset.name.includes(q) || c.dataset.location.includes(q);
+      c.classList.toggle('hidden', !match);
+      if (match) visible++;
+    });
+    document.getElementById('shop-count').textContent = visible + ' shop' + (visible !== 1 ? 's' : '');
   }
-
-  let progressInterval;
-  let progressVal = 0;
-
-  function animateProgress() {
-    progressVal = 0;
-    const fill = document.getElementById('progress-fill');
-    const label = document.getElementById('progress-label');
-    const labels = ['Reading file…', 'Counting pages…', 'Calculating price…'];
-    let li = 0;
-    fill.style.width = '0%';
-    progressInterval = setInterval(() => {
-      progressVal = Math.min(progressVal + Math.random() * 8, 88);
-      fill.style.width = progressVal + '%';
-      if (progressVal > 30 * (li + 1) && li < labels.length - 1) { li++; label.textContent = labels[li]; }
-    }, 200);
-  }
-
-  function stopProgress() {
-    clearInterval(progressInterval);
-    document.getElementById('progress-fill').style.width = '100%';
-  }
-
-  function showResult(data) {
-    hide('progress-wrap');
-    document.getElementById('res-icon').textContent = icons[data.ext] || '📄';
-    document.getElementById('res-filename').textContent = data.filename;
-    document.getElementById('res-meta').textContent = `${data.ext} · ${data.size_kb} KB`;
-    document.getElementById('res-pages').textContent = data.pages;
-    document.getElementById('res-price').textContent = `$${data.price.toFixed(2)}`;
-    document.getElementById('res-price-detail').textContent = `${data.pages} × $${data.price_per_page.toFixed(2)}`;
-    show('result-panel');
-  }
-
-  function showError(msg) {
-    hide('progress-wrap');
-    document.getElementById('error-msg').textContent = msg;
-    show('error-panel');
-  }
-
-  function reset() {
-    hide('result-panel'); hide('error-panel'); hide('progress-wrap');
-    fileInput.value = '';
-  }
-
-  function show(id) { document.getElementById(id).style.display = 'block'; }
-  function hide(id) { document.getElementById(id).style.display = 'none'; }
 </script>
 </body>
 </html>
